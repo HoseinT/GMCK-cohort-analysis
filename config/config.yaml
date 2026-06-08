@@ -1,0 +1,109 @@
+# ============================================================
+# Pipeline configuration — fill in all /path/to/... entries
+# before running. All other defaults match the methods section.
+# ============================================================
+
+samples: "sample_sheet.tsv"
+results_dir: "results"
+
+# ---- Reference files (GRCh37 / hg19) ----------------------
+reference:
+  genome:      /path/to/hg19/genome.fa
+  genome_dict: /path/to/hg19/genome.dict
+  dbsnp:       /path/to/dbSNP_v135.vcf.gz        # BQSR known site + snp-pileup
+  mills:       /path/to/Mills_1000G_indels.hg19.vcf.gz
+  known_1000g: /path/to/1000G_phase1.snps.hg19.vcf.gz
+  gnomad:      /path/to/af-only-gnomad.hg19.vcf.gz   # Mutect2 germline resource
+  pon:         /path/to/panel_of_normals.vcf.gz        # Mutect2 PON
+  intervals:   /path/to/panel.bed                      # Target panel BED
+  snp_pileup_vcf: /path/to/dbSNP_common.vcf.gz        # FACETS snp-pileup sites
+
+# ---- UMI settings ------------------------------------------
+umi:
+  read:   "R1"    # Which FASTQ contains the inline UMI (R1 or R2)
+  length: 8       # Number of 5'-bases that are the UMI sequence
+
+# ---- Tool paths (override if not on PATH) ------------------
+tools:
+  bwa:       bwa
+  gatk:      gatk
+  fgbio:     fgbio
+  cutadapt:  cutadapt
+  samtools:  samtools
+  snp_pileup: snp-pileup
+  vep:       vep
+  Rscript:   Rscript
+
+# ---- Compute resources -------------------------------------
+threads:
+  bwa:      8
+  gatk:     4
+  cutadapt: 4
+  general:  2
+
+# ---- Cutadapt adapter sequences ----------------------------
+adapters:
+  r1: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+  r2: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+
+# ---- Variant calling / filtering parameters ----------------
+params:
+  min_depth:  50
+  min_vaf:    0.05       # > 5% in either primary or relapse
+  cadd_cutoff: 0.20      # CADD PHRED score minimum
+  facets_max_depth: 20000
+  cutadapt_min_length: 30
+  cutadapt_quality:   20
+
+# ---- VEP v108 ----------------------------------------------
+vep:
+  cache_dir:   /path/to/vep_cache
+  version:     108
+  assembly:    "GRCh37"
+  plugins_dir: /path/to/vep_plugins
+  extra_flags: "--everything --canonical --no_stats"
+
+# Consequences to exclude from final variant table
+excluded_consequences:
+  - intron_variant
+  - downstream_gene_variant
+  - upstream_gene_variant
+  - 3_prime_UTR_variant
+  - 5_prime_UTR_variant
+  - non_coding_transcript_exon_variant
+
+# ---- CADD pre-scored files (v1.6) --------------------------
+cadd:
+  snv_file:   /path/to/whole_genome_SNVs.tsv.gz
+  indel_file: /path/to/InDels.tsv.gz
+
+# ---- FACETS CNV class thresholds ---------------------------
+facets:
+  # tcn = total copy number, lcn = lesser (minor) copy number
+  deep_loss_max: 0    # tcn == 0
+  loss_max:      1    # tcn < 2
+  gain_min:      3    # tcn 3–5
+  amp_min:       6    # tcn >= 6
+
+# ---- Cohort-level analysis ---------------------------------
+cohort:
+  panel_size_mb: 2.4                    # TMB denominator
+  gene_bed: /path/to/panel_genes.bed    # BED4: chrom, start, end, gene_name
+
+  # Per-sample adjusted TCN thresholds (adjusted = tcn.em - ploidy)
+  cnv_amp_per_sample:   1.0             # adjusted TCN > 1  → sample-level amplification
+  cnv_del_per_sample:  -1.0             # adjusted TCN < -1 → sample-level deletion
+
+  # Cohort-average adjusted TCN thresholds
+  cnv_avg_amp:   0.85                   # mean adjusted TCN >= 0.85 → recurrent amplification
+  cnv_avg_del:  -0.50                   # mean adjusted TCN <= -0.50 → recurrent deletion
+
+  # CNV burden threshold
+  cnv_burden_abs: 1.0                   # |adjusted TCN| > 1 counted toward burden
+
+  # Minimum patients required per gene for Wilcoxon test
+  wilcoxon_min_patients: 5
+
+  # Genes present in > N sample-columns (patient × sample_type) are tested.
+  # Matches the sum > 4 filter used in the project's existing analysis.
+  discover_min_samples: 4

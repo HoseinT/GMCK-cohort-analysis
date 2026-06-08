@@ -1,0 +1,66 @@
+import pandas as pd
+from pathlib import Path
+
+configfile: "../config/config.yaml"
+
+# ---- Load sample sheet -------------------------------------
+samples_df = pd.read_csv(config["samples"], sep="\t", dtype=str).set_index("patient_id")
+PATIENTS = samples_df.index.tolist()
+SAMPLE_TYPES = ["germline", "primary", "relapse"]
+TUMOR_TYPES  = ["primary", "relapse"]
+RESULTS      = config["results_dir"]
+
+def get_fastq(patient, sample_type, read):
+    col = f"{sample_type}_{read.lower()}"
+    return samples_df.loc[patient, col]
+
+# ---- Include rule modules ----------------------------------
+include: "rules/umi_and_trim.smk"
+include: "rules/alignment.smk"
+include: "rules/gatk_processing.smk"
+include: "rules/mutect2.smk"
+include: "rules/annotation.smk"
+include: "rules/filter_variants.smk"
+include: "rules/facets.smk"
+include: "rules/visualization.smk"
+include: "rules/cohort_analysis.smk"
+
+COHORT_PLOTS = [
+    "tmb",
+    "cnv_burden",
+    "cnv_heatmap",
+    "mutual_exclusivity",
+    "cnv_wilcoxon_volcano",
+]
+
+# ---- Final targets -----------------------------------------
+rule all:
+    input:
+        # --- Per-patient outputs ---
+        expand(
+            f"{RESULTS}/{{patient}}/final_variants/{{patient}}_final.tsv",
+            patient=PATIENTS,
+        ),
+        expand(
+            f"{RESULTS}/{{patient}}/facets/{{tumor}}_cnv.tsv",
+            patient=PATIENTS,
+            tumor=TUMOR_TYPES,
+        ),
+        expand(
+            f"{RESULTS}/{{patient}}/plots/{{patient}}_snv.html",
+            patient=PATIENTS,
+        ),
+        expand(
+            f"{RESULTS}/{{patient}}/plots/{{patient}}_cnv.html",
+            patient=PATIENTS,
+        ),
+        # --- Cohort-level outputs ---
+        f"{RESULTS}/cohort/tmb_summary.tsv",
+        f"{RESULTS}/cohort/mutual_exclusivity.tsv",
+        f"{RESULTS}/cohort/cnv_burden.tsv",
+        f"{RESULTS}/cohort/cnv_recurrent.tsv",
+        f"{RESULTS}/cohort/cnv_wilcoxon.tsv",
+        expand(
+            f"{RESULTS}/cohort/plots/{{plot}}.html",
+            plot=COHORT_PLOTS,
+        ),

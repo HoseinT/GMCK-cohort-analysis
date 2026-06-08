@@ -1,0 +1,3 @@
+patient_id	germline_r1	germline_r2	primary_r1	primary_r2	relapse_r1	relapse_r2
+PATIENT001	/data/P001_germline_R1.fastq.gz	/data/P001_germline_R2.fastq.gz	/data/P001_primary_R1.fastq.gz	/data/P001_primary_R2.fastq.gz	/data/P001_relapse_R1.fastq.gz	/data/P001_relapse_R2.fastq.gz
+PATIENT002	/data/P002_germline_R1.fastq.gz	/data/P002_germline_R2.fastq.gz	/data/P002_primary_R1.fastq.gz	/data/P002_primary_R2.fastq.gz	/data/P002_relapse_R1.fastq.gz	/data/P002_relapse_R2.fastq.gz
