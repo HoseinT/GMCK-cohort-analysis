@@ -1,0 +1,14 @@
+name: gmck-tools
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - bwa=0.7.17
+  - gatk4=4.2.6.1
+  - cutadapt=4.1
+  - samtools=1.6          # minimum; newer versions compatible
+  - fgbio                 # verify version with: fgbio --version
+  - snp-pileup            # ships with facets-suite on bioconda; verify version
+  - vep=108               # Ensembl VEP; requires separate cache download
+  - snakemake

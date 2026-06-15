@@ -1,0 +1,17 @@
+name: gmck-pipeline
+channels:
+  - conda-forge
+  - bioconda
+  - https://ccb.nki.nl/software/discover/repos/conda  # DISCOVER package
+  - defaults
+dependencies:
+  - python=3.8.12
+  - pandas=1.5.3
+  - numpy=1.26.4
+  - scipy=1.14.0
+  - statsmodels=0.14.2
+  - plotly=5.12
+  - pysam          # verify version; required for CADD tabix lookup
+  - pyranges       # verify version; required for CNV segment→gene mapping
+  - kaleido        # optional: PDF export for Plotly figures
+  - discover=0.9.5
